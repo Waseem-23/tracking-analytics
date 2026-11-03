@@ -1,0 +1,6 @@
+.venv/
+data/
+outputs/
+yolov8n.pt
+__pycache__/
+*.mp4
