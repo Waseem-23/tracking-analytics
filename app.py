@@ -8,7 +8,7 @@ from pipeline import process_video
 
 st.set_page_config(page_title="Tracking Analytics", layout="wide")
 st.title("Object Tracking and Analytics Dashboard")
-st.caption("YOLOv8 + ByteTrack | Line counter, dwell time, heatmap")
+st.caption("YOLOv8 + ByteTrack / BoT-SORT | Line counter, dwell time, heatmap")
 
 # Sidebar settings
 st.sidebar.header("Settings")
@@ -17,6 +17,10 @@ class_map = {"Person": 0, "Bicycle": 1, "Car": 2, "Motorcycle": 3, "Bus": 5}
 chosen = st.sidebar.multiselect("Classes", list(class_map), default=["Person", "Car"])
 line_pos = st.sidebar.slider("Line position (0 = left, 1 = right)", 0.0, 1.0, 0.5, 0.05)
 zone_end = st.sidebar.slider("Dwell zone (left se kitna hissa)", 0.1, 1.0, 0.5, 0.05)
+
+# NAYA: tracker selection
+tracker_choice = st.sidebar.selectbox("Tracker", ["ByteTrack", "BoT-SORT + ReID"])
+tracker_cfg = "bytetrack.yaml" if tracker_choice == "ByteTrack" else "botsort_reid.yaml"
 
 uploaded = st.file_uploader("Video upload karein", type=["mp4", "mov", "avi"])
 
@@ -34,16 +38,20 @@ if uploaded and st.button("Process"):
         line_pos=line_pos,
         zone_end=zone_end,
         classes=[class_map[c] for c in chosen],
+        tracker_cfg=tracker_cfg,  # NAYA
         progress_cb=lambda p: bar.progress(p, text=f"Processing... {int(p * 100)}%"),
     )
     bar.empty()
     with open(out_path, "rb") as f:
         result["video_bytes"] = f.read()
+    result["tracker"] = tracker_choice  # NAYA
     st.session_state["result"] = result
 
 if "result" in st.session_state:
     r = st.session_state["result"]
     df = r["dwell_df"]
+
+    st.info(f"Tracker used: **{r.get('tracker', 'ByteTrack')}**")  # NAYA
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("IN", r["in_count"])

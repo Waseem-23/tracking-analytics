@@ -11,6 +11,7 @@ from ultralytics import YOLO
 
 def process_video(video_in, video_out, model_name="yolov8s.pt",
                   line_pos=0.5, zone_end=0.5, classes=(0, 2),
+                  tracker_cfg="bytetrack.yaml",          # CHANGE 1 (naya)
                   progress_cb=None):
     model = YOLO(model_name)
     info = sv.VideoInfo.from_video_path(video_in)
@@ -40,7 +41,8 @@ def process_video(video_in, video_out, model_name="yolov8s.pt",
                              info.fps, (w, h))
 
     for i, frame in enumerate(sv.get_video_frames_generator(video_in)):
-        results = model.track(frame, persist=True, tracker="bytetrack.yaml",
+        results = model.track(frame, persist=True,
+                              tracker=tracker_cfg,       # CHANGE 2 (pehle "bytetrack.yaml" tha)
                               classes=list(classes), verbose=False)[0]
         detections = sv.Detections.from_ultralytics(results)
 
