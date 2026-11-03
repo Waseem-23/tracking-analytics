@@ -78,3 +78,20 @@ print(f"IN: {line_zone.in_count} | OUT: {line_zone.out_count}")
 print("\nDwell time (seconds) in left zone:")
 for tid, f in sorted(frames_in_zone.items()):
     print(f"  ID {tid}: {f / info.fps:.1f} s")
+    
+
+import pandas as pd
+
+rows = [{"track_id": tid, "dwell_seconds": round(f / info.fps, 2)}
+        for tid, f in sorted(frames_in_zone.items())]
+df = pd.DataFrame(rows)
+df.to_csv("outputs/dwell_time.csv", index=False)
+
+summary = {
+    "in_count": line_zone.in_count,
+    "out_count": line_zone.out_count,
+    "unique_ids_in_zone": len(df),
+    "avg_dwell_seconds": round(df["dwell_seconds"].mean(), 2) if len(df) else 0,
+}
+pd.DataFrame([summary]).to_csv("outputs/summary.csv", index=False)
+print("\nSaved: outputs/dwell_time.csv, outputs/summary.csv")
